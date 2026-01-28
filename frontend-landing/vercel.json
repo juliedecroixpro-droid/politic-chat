@@ -2,9 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "env": {
-    "VITE_API_URL": "@api_url",
-    "VITE_ADMIN_URL": "@admin_url"
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://mellow-joy-production-133b.up.railway.app",
+      "VITE_ADMIN_URL": "https://admin.eluia.app"
+    }
   },
   "headers": [
     {
