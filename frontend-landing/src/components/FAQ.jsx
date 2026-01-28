@@ -145,7 +145,7 @@ const FAQ = () => {
               Notre équipe est là pour vous aider. Contactez-nous directement !
             </p>
             <a
-              href="mailto:contact@politicchat.fr"
+              href="mailto:contact@eluia.fr"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-secondary-700 transition-all shadow-lg hover:shadow-xl"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

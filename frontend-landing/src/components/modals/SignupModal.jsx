@@ -115,11 +115,11 @@ const SignupModal = ({ isOpen, onClose, preSelectedPlan = null, isTrial = false 
         localStorage.setItem('token', data.access_token);
         
         // Redirect to admin portal
-        const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5173';
+        const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://frontend-admin-nine-zeta.vercel.app';
         window.location.href = ADMIN_URL;
       } else {
         // Fallback if no token provided
-        const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5173';
+        const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || 'https://frontend-admin-nine-zeta.vercel.app';
         window.location.href = ADMIN_URL;
       }
       
