@@ -11,7 +11,7 @@ COPY backend/ .
 # Create necessary directories
 RUN mkdir -p ./vectors ./chroma_db
 
-EXPOSE 8000
+EXPOSE 8080
 
-# Railway uses $PORT environment variable
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start uvicorn on port 8080 (Railway default)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
