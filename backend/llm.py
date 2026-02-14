@@ -1,17 +1,18 @@
 import hashlib
 from typing import List, Dict, Optional
-from anthropic import Anthropic
+from mistralai import Mistral
 from datetime import datetime
 from sqlalchemy.orm import Session
 from database import Candidate, CostLog, QACache
 from config import settings
 
-anthropic_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+mistral_client = Mistral(api_key=settings.MISTRAL_API_KEY)
 
-# Pricing (per 1M tokens) - as of early 2024
+# Pricing (per 1M tokens) - Mistral AI pricing (Feb 2026)
 PRICING = {
-    "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
-    "claude-3-5-haiku-20241022": {"input": 1.00, "output": 5.00}
+    "mistral-small-latest": {"input": 0.2, "output": 0.6},
+    "mistral-medium-latest": {"input": 2.5, "output": 7.5},
+    "mistral-large-latest": {"input": 2.0, "output": 6.0}
 }
 
 def calculate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
@@ -147,24 +148,29 @@ def generate_response(
     system_prompt = build_system_prompt(candidate, context_sections)
     
     try:
-        # Use Claude
-        response = anthropic_client.messages.create(
+        # Use Mistral
+        response = mistral_client.chat.complete(
             model=settings.PRIMARY_MODEL,
-            max_tokens=1024,
-            system=system_prompt,
-            messages=[{
-                "role": "user",
-                "content": question
-            }]
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ],
+            max_tokens=1024
         )
         
-        answer = response.content[0].text
-        input_tokens = response.usage.input_tokens
-        output_tokens = response.usage.output_tokens
+        answer = response.choices[0].message.content
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
         model_used = settings.PRIMARY_MODEL
         
     except Exception as e:
-        print(f"Claude error: {e}")
+        print(f"Mistral error: {e}")
         return {
             "answer": "Désolé, une erreur technique est survenue. Veuillez réessayer dans quelques instants.",
             "cached": False,

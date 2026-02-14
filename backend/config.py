@@ -3,8 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # API Keys
-    ANTHROPIC_API_KEY: str
-    OPENAI_API_KEY: Optional[str] = None
+    MISTRAL_API_KEY: str
     
     # Security
     SECRET_KEY: str = "change-this-to-a-random-secret-key-in-production"
@@ -29,9 +28,9 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE_MB: int = 50
     
     # LLM Settings
-    PRIMARY_MODEL: str = "claude-3-haiku-20240307"
-    FALLBACK_MODEL: str = "gpt-3.5-turbo"
-    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    PRIMARY_MODEL: str = "mistral-small-latest"
+    FALLBACK_MODEL: str = "mistral-small-latest"
+    EMBEDDING_MODEL: str = "distiluse-base-multilingual-cased-v1"  # Local sentence-transformers
     
     # CORS - accepts both string and list for flexibility
     CORS_ORIGINS: str = '["http://localhost:5173", "http://localhost:3000"]'
