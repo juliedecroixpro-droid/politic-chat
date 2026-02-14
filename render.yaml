@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: politic-chat-backend
+    env: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: politic-chat-db
+          property: connectionString
+      - key: PRIMARY_MODEL
+        value: mistral-small-latest
+      - key: FALLBACK_MODEL
+        value: mistral-small-latest
+      - key: RATE_LIMIT_PER_DAY
+        value: 20
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12"
+
+databases:
+  - name: politic-chat-db
+    plan: free
+    databaseName: politicchat
+    user: politicchat
