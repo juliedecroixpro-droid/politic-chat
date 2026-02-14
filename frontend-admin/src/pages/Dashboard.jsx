@@ -47,7 +47,7 @@ export default function Dashboard({ setIsAuthenticated }) {
     );
   }
 
-  const chatUrl = user ? `${window.location.origin.replace(':5173', ':5174')}/chat/${user.slug}` : '';
+  const chatUrl = user ? `https://frontend-public-pink.vercel.app/chat/${user.slug}` : '';
 
   return (
     <div className="min-h-screen bg-gray-50">
