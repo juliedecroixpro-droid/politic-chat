@@ -28,9 +28,9 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE_MB: int = 50
     
     # LLM Settings
-    PRIMARY_MODEL: str = "mistral-small-latest"
-    FALLBACK_MODEL: str = "mistral-small-latest"
-    EMBEDDING_MODEL: str = "distiluse-base-multilingual-cased-v1"  # Local sentence-transformers
+    PRIMARY_MODEL: str = "claude-3-haiku-20240307"
+    FALLBACK_MODEL: str = "gpt-3.5-turbo"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
     
     # CORS - accepts both string and list for flexibility
     CORS_ORIGINS: str = '["http://localhost:5173", "http://localhost:3000"]'
