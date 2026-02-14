@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Create necessary directories
-RUN mkdir -p ./vectors ./chroma_db
+RUN mkdir -p ./vectors ./chroma_db ./uploads
 
 EXPOSE 8080
 
