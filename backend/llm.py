@@ -128,7 +128,9 @@ RÈGLES ABSOLUES :
 CONNAISSANCES (à utiliser naturellement, SANS les citer) :
 {context_text}
 
-Important : Ces informations sont TA connaissance. Parle comme un candidat qui connaît son programme, pas comme un robot qui lit un document.
+Important : Ces informations sont TA connaissance. Parle comme un candidat qui connaît son programme, pas comme un robot qui lit un document."""
+    
+    return prompt
 
 def generate_response(
     db: Session,
