@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { removeToken } from '../utils/auth';
 import { auth, program, agent, analytics } from '../utils/api';
 import ProgramUpload from '../components/ProgramUpload';
+import TalkingPointsUpload from '../components/TalkingPointsUpload';
+import CompetitiveUpload from '../components/CompetitiveUpload';
 import AgentConfig from '../components/AgentConfig';
 import Analytics from '../components/Analytics';
 import Conversations from '../components/Conversations';
@@ -118,7 +120,27 @@ export default function Dashboard({ setIsAuthenticated }) {
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
-                📄 Program Upload
+                📄 Programme
+              </button>
+              <button
+                onClick={() => setActiveTab('talking-points')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'talking-points'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                }`}
+              >
+                💬 Éléments de langage
+              </button>
+              <button
+                onClick={() => setActiveTab('competitive')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'competitive'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                }`}
+              >
+                ⚔️ Positionnement
               </button>
               <button
                 onClick={() => setActiveTab('config')}
@@ -128,7 +150,7 @@ export default function Dashboard({ setIsAuthenticated }) {
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
-                🤖 Agent Config
+                🤖 Config Agent
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -157,6 +179,8 @@ export default function Dashboard({ setIsAuthenticated }) {
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           {activeTab === 'upload' && <ProgramUpload user={user} onUploadComplete={loadUser} />}
+          {activeTab === 'talking-points' && <TalkingPointsUpload user={user} onUploadSuccess={loadUser} />}
+          {activeTab === 'competitive' && <CompetitiveUpload user={user} onUploadSuccess={loadUser} />}
           {activeTab === 'config' && <AgentConfig user={user} onUpdate={loadUser} />}
           {activeTab === 'analytics' && <Analytics user={user} />}
           {activeTab === 'conversations' && <Conversations user={user} />}

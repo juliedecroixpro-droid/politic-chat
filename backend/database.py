@@ -30,6 +30,18 @@ class Candidate(Base):
     program_processed = Column(Boolean, default=False)
     program_processed_at = Column(DateTime)
     
+    # Talking Points (Éléments de langage)
+    talking_points_uploaded = Column(Boolean, default=False)
+    talking_points_filename = Column(String)
+    talking_points_processed = Column(Boolean, default=False)
+    talking_points_processed_at = Column(DateTime)
+    
+    # Competitive Position (Positionnement concurrentiel)
+    competitive_uploaded = Column(Boolean, default=False)
+    competitive_filename = Column(String)
+    competitive_processed = Column(Boolean, default=False)
+    competitive_processed_at = Column(DateTime)
+    
     # Relationships
     conversations = relationship("Conversation", back_populates="candidate")
     cost_logs = relationship("CostLog", back_populates="candidate")

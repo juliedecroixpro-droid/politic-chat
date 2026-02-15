@@ -81,7 +81,7 @@ def create_embeddings(texts: List[str]) -> np.ndarray:
     model = get_embedding_model()
     return model.encode(texts, show_progress_bar=False)
 
-def process_document(file_path: str, candidate_id: int, filename: str) -> dict:
+def process_document(file_path: str, candidate_id: int, filename: str, doc_type: str = "program") -> dict:
     """Process document and store embeddings locally."""
     # Determine file type and extract text
     ext = os.path.splitext(filename)[1].lower()
@@ -117,10 +117,11 @@ def process_document(file_path: str, candidate_id: int, filename: str) -> dict:
     candidate_data = {
         "chunks": all_chunks,
         "metadata": all_metadata,
-        "embeddings": embeddings
+        "embeddings": embeddings,
+        "doc_type": doc_type
     }
     
-    vector_file = os.path.join(VECTORS_DIR, f"candidate_{candidate_id}.pkl")
+    vector_file = os.path.join(VECTORS_DIR, f"candidate_{candidate_id}_{doc_type}.pkl")
     with open(vector_file, 'wb') as f:
         pickle.dump(candidate_data, f)
     
@@ -130,38 +131,46 @@ def process_document(file_path: str, candidate_id: int, filename: str) -> dict:
         "vector_file": vector_file
     }
 
-def search_program(candidate_id: int, query: str, n_results: int = 5) -> List[dict]:
-    """Search for relevant sections in candidate's program."""
-    vector_file = os.path.join(VECTORS_DIR, f"candidate_{candidate_id}.pkl")
+def search_documents(candidate_id: int, query: str, n_results: int = 5, doc_types: List[str] = ["program", "talking_points", "competitive"]) -> List[dict]:
+    """Search for relevant sections across all candidate documents."""
+    all_results = []
     
-    if not os.path.exists(vector_file):
-        return []
-    
-    # Load candidate data
-    with open(vector_file, 'rb') as f:
-        candidate_data = pickle.load(f)
-    
-    chunks = candidate_data["chunks"]
-    metadata = candidate_data["metadata"]
-    embeddings = candidate_data["embeddings"]
-    
-    # Create query embedding
+    # Create query embedding once
     query_embedding = create_embeddings([query])[0]
     
-    # Calculate similarities
-    similarities = cosine_similarity([query_embedding], embeddings)[0]
+    # Search each document type
+    for doc_type in doc_types:
+        vector_file = os.path.join(VECTORS_DIR, f"candidate_{candidate_id}_{doc_type}.pkl")
+        
+        if not os.path.exists(vector_file):
+            continue
+        
+        # Load candidate data
+        with open(vector_file, 'rb') as f:
+            candidate_data = pickle.load(f)
+        
+        chunks = candidate_data["chunks"]
+        metadata = candidate_data["metadata"]
+        embeddings = candidate_data["embeddings"]
+        
+        # Calculate similarities
+        similarities = cosine_similarity([query_embedding], embeddings)[0]
+        
+        # Add to all results with doc_type
+        for idx, similarity in enumerate(similarities):
+            all_results.append({
+                "text": chunks[idx],
+                "page": metadata[idx].get("page", "N/A"),
+                "source": metadata[idx].get("source", "Unknown"),
+                "doc_type": doc_type,
+                "similarity": float(similarity)
+            })
     
-    # Get top results
-    top_indices = np.argsort(similarities)[-n_results:][::-1]
+    # Sort all results by similarity
+    all_results.sort(key=lambda x: x["similarity"], reverse=True)
     
-    # Format results
-    formatted_results = []
-    for idx in top_indices:
-        formatted_results.append({
-            "text": chunks[idx],
-            "page": metadata[idx].get("page", "N/A"),
-            "source": metadata[idx].get("source", "Unknown"),
-            "similarity": float(similarities[idx])
-        })
-    
-    return formatted_results
+    # Return top N results
+    return all_results[:n_results]
+
+# Alias for backward compatibility
+search_program = search_documents

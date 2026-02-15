@@ -148,7 +148,11 @@ def get_current_user(candidate: Candidate = Depends(get_current_candidate)):
         "tone": candidate.tone,
         "response_length": candidate.response_length,
         "program_uploaded": candidate.program_uploaded,
-        "program_processed": candidate.program_processed
+        "program_processed": candidate.program_processed,
+        "talking_points_uploaded": candidate.talking_points_uploaded,
+        "talking_points_processed": candidate.talking_points_processed,
+        "competitive_uploaded": candidate.competitive_uploaded,
+        "competitive_processed": candidate.competitive_processed
     }
 
 # Program Upload Routes
@@ -197,6 +201,122 @@ async def upload_program(
         return {
             "success": True,
             "message": "Program processed successfully",
+            "details": result
+        }
+    
+    except Exception as e:
+        # Clean up on error
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing document: {str(e)}"
+        )
+
+# Talking Points Upload Routes
+@app.post("/api/talking-points/upload")
+async def upload_talking_points(
+    file: UploadFile = File(...),
+    candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db)
+):
+    """Upload and process talking points document."""
+    # Validate file type
+    if not file.filename.endswith(('.pdf', '.docx', '.doc')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF and Word documents are supported"
+        )
+    
+    # Validate file size
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    
+    if file_size > settings.MAX_FILE_SIZE_MB * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB"
+        )
+    
+    # Save file
+    file_path = f"uploads/candidate_{candidate.id}_talking_points_{file.filename}"
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        content = await file.read()
+        await out_file.write(content)
+    
+    try:
+        # Process document
+        result = process_document(file_path, candidate.id, file.filename, doc_type="talking_points")
+        
+        # Update candidate
+        candidate.talking_points_uploaded = True
+        candidate.talking_points_filename = file.filename
+        candidate.talking_points_processed = True
+        candidate.talking_points_processed_at = datetime.utcnow()
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Talking points processed successfully",
+            "details": result
+        }
+    
+    except Exception as e:
+        # Clean up on error
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing document: {str(e)}"
+        )
+
+# Competitive Position Upload Routes
+@app.post("/api/competitive/upload")
+async def upload_competitive(
+    file: UploadFile = File(...),
+    candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db)
+):
+    """Upload and process competitive positioning document."""
+    # Validate file type
+    if not file.filename.endswith(('.pdf', '.docx', '.doc')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF and Word documents are supported"
+        )
+    
+    # Validate file size
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    
+    if file_size > settings.MAX_FILE_SIZE_MB * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File too large. Max size: {settings.MAX_FILE_SIZE_MB}MB"
+        )
+    
+    # Save file
+    file_path = f"uploads/candidate_{candidate.id}_competitive_{file.filename}"
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        content = await file.read()
+        await out_file.write(content)
+    
+    try:
+        # Process document
+        result = process_document(file_path, candidate.id, file.filename, doc_type="competitive")
+        
+        # Update candidate
+        candidate.competitive_uploaded = True
+        candidate.competitive_filename = file.filename
+        candidate.competitive_processed = True
+        candidate.competitive_processed_at = datetime.utcnow()
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Competitive positioning processed successfully",
             "details": result
         }
     

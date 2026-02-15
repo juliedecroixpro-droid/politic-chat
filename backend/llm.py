@@ -92,7 +92,7 @@ def cache_answer(db: Session, candidate_id: int, question: str, answer: str):
         db.commit()
 
 def build_system_prompt(candidate: Candidate, context_sections: List[Dict]) -> str:
-    """Build system prompt with context."""
+    """Build system prompt with context from multiple document types."""
     tone_instructions = {
         "formal": "Maintain a professional and formal tone. Use complete sentences and avoid colloquialisms.",
         "accessible": "Use clear, friendly language that's easy to understand. Be warm and approachable."
@@ -103,26 +103,60 @@ def build_system_prompt(candidate: Candidate, context_sections: List[Dict]) -> s
         "detailed": "Provide comprehensive answers with explanations and context when appropriate."
     }
     
-    context_text = "\n\n".join([
-        f"[Page {section['page']}]\n{section['text']}"
-        for section in context_sections
-    ])
+    # Group sections by document type
+    program_sections = []
+    talking_points_sections = []
+    competitive_sections = []
+    
+    for section in context_sections:
+        doc_type = section.get('doc_type', 'program')
+        doc_label = {
+            'program': 'Programme',
+            'talking_points': 'Éléments de langage',
+            'competitive': 'Positionnement concurrentiel'
+        }.get(doc_type, 'Document')
+        
+        formatted = f"[{doc_label} - Page {section['page']}]\n{section['text']}"
+        
+        if doc_type == 'program':
+            program_sections.append(formatted)
+        elif doc_type == 'talking_points':
+            talking_points_sections.append(formatted)
+        elif doc_type == 'competitive':
+            competitive_sections.append(formatted)
+    
+    # Build context sections
+    context_parts = []
+    
+    if program_sections:
+        context_parts.append("=== PROGRAMME ÉLECTORAL ===\n" + "\n\n".join(program_sections))
+    
+    if talking_points_sections:
+        context_parts.append("=== ÉLÉMENTS DE LANGAGE ===\n" + "\n\n".join(talking_points_sections))
+    
+    if competitive_sections:
+        context_parts.append("=== POSITIONNEMENT CONCURRENTIEL ===\n" + "\n\n".join(competitive_sections))
+    
+    context_text = "\n\n".join(context_parts)
     
     prompt = f"""You are {candidate.agent_name}, an AI assistant for {candidate.name}'s municipal campaign.
 
 IMPORTANT INSTRUCTIONS:
-- Answer questions based ONLY on the provided program sections below
+- Answer questions based ONLY on the provided documents below (Programme, Éléments de langage, Positionnement concurrentiel)
+- Use the PROGRAMME for factual policy information
+- Use the ÉLÉMENTS DE LANGAGE for communication guidance and key messaging
+- Use the POSITIONNEMENT CONCURRENTIEL when discussing differences with opponents
 - {tone_instructions.get(candidate.tone, tone_instructions['accessible'])}
 - {length_instructions.get(candidate.response_length, length_instructions['concise'])}
-- Always cite specific page numbers when referencing the program
-- If a topic is not covered in the program, respond: "Ce sujet n'est pas abordé dans le programme. Je vous encourage à contacter {candidate.name} directement pour plus d'informations."
-- Be helpful, accurate, and maintain a non-partisan tone
+- When appropriate, cite page numbers or document types when referencing information
+- If a topic is not covered in any document, respond: "Ce sujet n'est pas abordé dans nos documents. Je vous encourage à contacter {candidate.name} directement pour plus d'informations."
+- Be helpful, accurate, and maintain the campaign's messaging consistency
 - Respond in French
 
-PROGRAM SECTIONS:
+DOCUMENTS DISPONIBLES:
 {context_text}
 
-Remember: Only answer based on the above sections. If the information isn't there, admit it."""
+Remember: Only answer based on the above documents. If the information isn't there, admit it."""
     
     return prompt
 

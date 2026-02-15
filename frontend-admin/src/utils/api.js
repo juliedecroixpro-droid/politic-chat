@@ -31,6 +31,30 @@ export const program = {
   },
 };
 
+export const uploadTalkingPoints = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axios.post(`${API_BASE}/talking-points/upload`, formData, {
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'multipart/form-data',
+    },
+  }).catch(handleError);
+  return response.data;
+};
+
+export const uploadCompetitive = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await axios.post(`${API_BASE}/competitive/upload`, formData, {
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'multipart/form-data',
+    },
+  }).catch(handleError);
+  return response.data;
+};
+
 export const agent = {
   updateConfig: (config) => 
     axios.put(`${API_BASE}/agent/config`, config, { headers: getAuthHeaders() }).catch(handleError),
