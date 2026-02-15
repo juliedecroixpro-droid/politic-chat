@@ -13,5 +13,5 @@ RUN mkdir -p ./vectors ./chroma_db ./uploads
 
 EXPOSE 8080
 
-# Start uvicorn on port 8080 (Railway default)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start uvicorn - Railway will override port via $PORT env var
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
