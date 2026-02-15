@@ -94,71 +94,41 @@ def cache_answer(db: Session, candidate_id: int, question: str, answer: str):
 def build_system_prompt(candidate: Candidate, context_sections: List[Dict]) -> str:
     """Build system prompt with context from multiple document types."""
     tone_instructions = {
-        "formal": "Maintain a professional and formal tone. Use complete sentences and avoid colloquialisms.",
-        "accessible": "Use clear, friendly language that's easy to understand. Be warm and approachable."
+        "formal": "Adoptez un ton professionnel tout en restant accessible.",
+        "accessible": "Parlez de façon claire et chaleureuse, comme dans une conversation naturelle."
     }
     
     length_instructions = {
-        "concise": "Keep responses brief and to the point, typically 2-3 sentences.",
-        "detailed": "Provide comprehensive answers with explanations and context when appropriate."
+        "concise": "Répondez de façon concise et directe, en 2-3 phrases généralement.",
+        "detailed": "Fournissez des réponses complètes avec explications et contexte quand approprié."
     }
     
-    # Group sections by document type
-    program_sections = []
-    talking_points_sections = []
-    competitive_sections = []
+    # Combine all sections without document type labels
+    all_context = []
     
     for section in context_sections:
-        doc_type = section.get('doc_type', 'program')
-        doc_label = {
-            'program': 'Programme',
-            'talking_points': 'Éléments de langage',
-            'competitive': 'Positionnement concurrentiel'
-        }.get(doc_type, 'Document')
-        
-        formatted = f"[{doc_label} - Page {section['page']}]\n{section['text']}"
-        
-        if doc_type == 'program':
-            program_sections.append(formatted)
-        elif doc_type == 'talking_points':
-            talking_points_sections.append(formatted)
-        elif doc_type == 'competitive':
-            competitive_sections.append(formatted)
+        # Just add the text without any label
+        all_context.append(section['text'])
     
-    # Build context sections
-    context_parts = []
+    context_text = "\n\n".join(all_context)
     
-    if program_sections:
-        context_parts.append("=== PROGRAMME ÉLECTORAL ===\n" + "\n\n".join(program_sections))
-    
-    if talking_points_sections:
-        context_parts.append("=== ÉLÉMENTS DE LANGAGE ===\n" + "\n\n".join(talking_points_sections))
-    
-    if competitive_sections:
-        context_parts.append("=== POSITIONNEMENT CONCURRENTIEL ===\n" + "\n\n".join(competitive_sections))
-    
-    context_text = "\n\n".join(context_parts)
-    
-    prompt = f"""You are {candidate.agent_name}, an AI assistant for {candidate.name}'s municipal campaign.
+    prompt = f"""Tu es l'assistant IA de {candidate.name} pour sa campagne électorale.
 
-IMPORTANT INSTRUCTIONS:
-- Answer questions based ONLY on the provided documents below (Programme, Éléments de langage, Positionnement concurrentiel)
-- Use the PROGRAMME for factual policy information
-- Use the ÉLÉMENTS DE LANGAGE for communication guidance and key messaging
-- Use the POSITIONNEMENT CONCURRENTIEL when discussing differences with opponents
-- {tone_instructions.get(candidate.tone, tone_instructions['accessible'])}
-- {length_instructions.get(candidate.response_length, length_instructions['concise'])}
-- When appropriate, cite page numbers or document types when referencing information
-- If a topic is not covered in any document, respond: "Ce sujet n'est pas abordé dans nos documents. Je vous encourage à contacter {candidate.name} directement pour plus d'informations."
-- Be helpful, accurate, and maintain the campaign's messaging consistency
-- Respond in French
+RÈGLES ABSOLUES :
+1. JAMAIS mentionner "Programme", "Éléments de langage", "Positionnement concurrentiel", ou citer des pages/documents
+2. Parle naturellement comme si TU ÉTAIS {candidate.name} directement
+3. Intègre les informations de façon fluide dans une conversation normale
+4. {tone_instructions.get(candidate.tone, tone_instructions['accessible'])}
+5. {length_instructions.get(candidate.response_length, length_instructions['concise'])}
+6. Réponds UNIQUEMENT avec les informations ci-dessous
+7. Si un sujet n'est pas couvert, dis simplement : "Je n'ai pas encore développé cette partie de mon programme. N'hésitez pas à me contacter directement pour en discuter."
+8. Reste cohérent avec le message de campagne
+9. Réponds toujours en français
 
-DOCUMENTS DISPONIBLES:
+CONNAISSANCES (à utiliser naturellement, SANS les citer) :
 {context_text}
 
-Remember: Only answer based on the above documents. If the information isn't there, admit it."""
-    
-    return prompt
+Important : Ces informations sont TA connaissance. Parle comme un candidat qui connaît son programme, pas comme un robot qui lit un document.
 
 def generate_response(
     db: Session,
